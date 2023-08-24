@@ -2,16 +2,20 @@ import cv2
 import mediapipe as mp
 import copy
 from math import sqrt
-# from pyfirmata import Arduino, util, SERVO
+from pyfirmata import Arduino, util, SERVO
 from functions import *
 
-# port = 'COM4' # Cambiar el puerto COM por el que corresponda
-# board = Arduino(port)
-# board.digital[9].mode = SERVO
+# Arduino configuration
+port = 'COM4' # Cambiar el puerto COM por el que corresponda
+board = Arduino(port)
+pin_thumb = 9
+
+
+board.digital[pin_thumb].mode = SERVO
 
 maximum_distances_to_wrist = {
     "thumb": {
-        "max": 0.7,
+        "max": 0.685,
         "min": 0.56
     },
     "index": {
@@ -33,7 +37,7 @@ maximum_distances_to_wrist = {
 }
 
 def main():
-    # rotateservo(9, 0, board)
+    rotateservo(pin_thumb, 0, board)
 
     # Initialize MediaPipe Hands module
     mp_hands = mp.solutions.hands
@@ -82,8 +86,6 @@ def main():
                     distance_ring_wrist = round(sqrt((ring_x - wrist_x)**2 + (ring_y - wrist_y)**2),4)
                     distance_pinky_wrist = round(sqrt((pinky_x - wrist_x)**2 + (pinky_y - wrist_y)**2),4)
 
-                    # print(f"[{distance_thumb_wrist}, {distance_index_wrist}, {distance_middle_wrist}, {distance_ring_wrist}, {distance_pinky_wrist}]")
-
                     # knowing that the hand is extended and coordenates starts at 0,0 at the top left corner
                     avg_distances = 0.0
                     distance_thumb_wrist_normalized = distance_thumb_wrist
@@ -100,9 +102,6 @@ def main():
                         distance_ring_wrist_normalized = round(distance_ring_wrist / avg_distances, 4)
                         distance_pinky_wrist_normalized = round(distance_pinky_wrist / avg_distances, 4)
 
-                    
-                    # print(f"[{distance_thumb_wrist_normalized}, {distance_index_wrist_normalized}, {distance_middle_wrist_normalized}, {distance_ring_wrist_normalized}, {distance_pinky_wrist_normalized}]")
-
                     if maximum_distances_to_wrist["thumb"]["min"] < distance_thumb_wrist_normalized < maximum_distances_to_wrist["thumb"]["max"]:
                         # normalize values to 0-1 range
                         # when distance is maximum, value is 0 and servomotor is at 0 degrees
@@ -110,7 +109,7 @@ def main():
                         distance_thumb_wrist_servo = round((distance_thumb_wrist_normalized - maximum_distances_to_wrist["thumb"]["max"]) / (maximum_distances_to_wrist["thumb"]["min"] - maximum_distances_to_wrist["thumb"]["max"]), 4)
                         angle_thumb = round(distance_thumb_wrist_servo * 180)
                         # print(f"angle_thumb: {angle_thumb}")
-                        # rotateservo(9, angle_thumb, board)
+                        # rotateservo(pin_thumb, angle_thumb, board)
 
                     elif maximum_distances_to_wrist["index"]["min"] < distance_index_wrist_normalized < maximum_distances_to_wrist["index"]["max"]:
                         distance_index_wrist_servo = round((distance_index_wrist_normalized - maximum_distances_to_wrist["index"]["max"]) / (maximum_distances_to_wrist["index"]["min"] - maximum_distances_to_wrist["index"]["max"]), 4)
